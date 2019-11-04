@@ -3,5 +3,4 @@ $folders = Get-ChildItem -Directory ;
 for ( $i = 0; $i -lt $folders.Length; $i++ ){                
                $Name = $folders[$i].Name; 
                $NewName = $prefix + $Name; 
-               $NewName;
                Rename-Item $Name $NewName; }
