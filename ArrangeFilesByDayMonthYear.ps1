@@ -1,28 +1,46 @@
-param([string] $filepath = "C:\Users\jerri\Documents\Test" ,
-    [string] $skippathpattern = ".git")
-$folders = Get-ChildItem -Path $filepath -Recurse -Directory | ? { $_.Parent.FullName -inotmatch $skippathpattern -and $_.FullName -inotmatch $skippathpattern }
-foreach ($folder in $folders) {
-    $items = get-Childitem -Path $folder.FullName -Recurse | Where-Object { $_.FullName -inotmatch $skippathpattern } 
-    foreach ($item in $items) {
-        if (( Get-Item $item.FullName ) -ne [System.IO.DirectoryInfo]) {
-            $pathtomove = $filepath + "\" + $item.CreationTime.Year + "-" + $item.CreationTime.Month
-            $ItemTOMove += @(, @($item.CreationTime.Month, $pathtomove, $item.FullName))
+param([string] $FilePath = "FILE_PATH" ,
+    [string] $SkipPathPattern = ".git")
+    # check if a proper valid path is provided for further processing
+    if (($FilePath -eq "FILE_PATH") -or (!(test-path $FilePath)) ) {
+    Write-Error "Provide a valid path!!!"
+    Return
+    }
+<#  Traverse and find all directories 
+    in the given path excluding folders containing SkipPathPattern in their
+    Full path 
+ #>
+ $Folders = Get-ChildItem -Path $FilePath -Recurse -Directory | ? { $_.Parent.FullName -inotmatch $SkipPathPattern -and $_.FullName -inotmatch $SkipPathPattern }
+foreach ($Folder in $Folders) {
+    $Items = get-Childitem -Path $Folder.FullName -Recurse | Where-Object { $_.FullName -inotmatch $SkipPathPattern } 
+    foreach ($Item in $Items) {
+        if (( Get-Item $Item.FullName ) -ne [System.IO.DirectoryInfo]) {
+            $DestinationPath = $FilePath + "\" + $Item.CreationTime.Year + "-" + $Item.CreationTime.Month
+            $FilesToMove += @(, @($DestinationPath, $Item.FullName))
         }        
     }
 }
-$targetfolderitems = get-Childitem -Path $filepath -File | Where-Object { $_.FullName -inotmatch $skippathpattern } 
-foreach ($item in $targetfolderitems) {
-    if (( Get-Item $item.FullName ) -ne [System.IO.DirectoryInfo]) {
-        $pathtomove = $filepath + "\" + $item.CreationTime.Year + "-" + $item.CreationTime.Month
-        $ItemTOMove += @(, @($item.CreationTime.Month, $pathtomove, $item.FullName))
+# Get all files from the origin path
+$FilesInFilePath = get-Childitem -Path $FilePath -File | Where-Object { $_.FullName -inotmatch $SkipPathPattern } 
+foreach ($Item in $FilesInFilePath) {
+    if (( Get-Item $Item.FullName ) -ne [System.IO.DirectoryInfo]) {
+        $DestinationPath = $FilePath + "\" + $Item.CreationTime.Year + "-" + $Item.CreationTime.Month
+        $FilesToMove += @(, @($DestinationPath, $Item.FullName))
     }        
 }
-$ItemTOMove.Count
-for ($i = 0; $i -lt $ItemToMove.Count; $i++) {
-    If (!(test-path $ItemTOMove[$i][1])) {
-        New-Item -ItemType Directory -Force -Path $ItemTOMove[$i][1]
+[float]$Scale = $FilesToMove.Count / 100
+for ($i = 0; $i -lt $FilesToMove.Count; $i++) {
+    # check if destination folder exist and move the item
+    if ($i -gt 0) {
+        [float] $Progress = $i / $Scale
     }
-    Move-Item -Path $ItemTOMove[$i][2] -Destination $ItemTOMove[$i][1] -Force   
+    else {
+        [float] $Progress = 0.0
+    }   
+    Write-Progress -Activity "Copying in Progress" -Status "$Progress% Complete" -PercentComplete $Progress
+    If (!(test-path $FilesToMove[$i][0])) {
+        New-Item -ItemType Directory -Force -Path $FilesToMove[$i][0]
+    }
+    Move-Item -Path $FilesToMove[$i][1] -Destination $FilesToMove[$i][0] -Force   
 }
 
 
