@@ -1,4 +1,5 @@
-param([string] $Prefix = 'DUMMY',
+param([Parameter(Mandatory=$true)]
+      [string] $Prefix,
     [string] $FilePath = 'FILE_PATH')
 if (($FilePath -eq "FILE_PATH") -or (!(test-path $FilePath)) ) {
     Write-Error "Provide a valid path!!!"
