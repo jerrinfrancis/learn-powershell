@@ -11,10 +11,10 @@ if ($SearchString -eq "DUMMY") {
     
 }
 $ReplacePattern = '*' + $SearchString + '*'
-$FilesToRename = Get-ChildItem -Path $path -File -Recurse -Filter $ReplacePattern
+$FilesToRename = Get-ChildItem -Path $FilePath -File -Recurse -Filter $ReplacePattern
 foreach ($File in $FilesToRename) {
     [string] $CurrentName = $File.Name
-    $ReplaceName = $CurrentName.Replace($SearchString, $Replacement)
+    $ReplaceName = $CurrentName.Replace($SearchString, $ReplacementString)
     Rename-Item -Path $File.FullName -NewName $ReplaceName -Force
     
 }
