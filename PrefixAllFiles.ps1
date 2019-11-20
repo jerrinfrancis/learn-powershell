@@ -13,7 +13,7 @@ if ($Prefix -eq "DUMMY") {
 $FilesToRename = Get-ChildItem -Path $FilePath -File -Recurse 
 foreach ($File in $FilesToRename) {
     [string] $CurrentName = $File.Name
-    $PrefixedName = $Prefix + '' + $CurrentName
+    $PrefixedName = $Prefix + ' ' + $CurrentName
     Rename-Item -Path $File.FullName -NewName $PrefixedName -Force
     
 }
